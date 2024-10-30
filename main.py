@@ -6,7 +6,9 @@ import xlsxwriter
 plikWynikowy = 'wynik.xlsx'
 plikTema = 'tema.xlsx'
 plikTemaEan = 'Paskowy'
-kolumny = ['KodWlasny',plikTemaEan, 'NazwaZnacznika','Nazwa','IloscNaMagazynie','CenaZakupuNetto']
+plikTemaCenaZakupu = 'CenaZakupuNetto'
+kolumny = ['KodWlasny',plikTemaEan, 'NazwaZnacznika','Nazwa','IloscNaMagazynie',plikTemaCenaZakupu]
+kolumnyCena = [plikTemaCenaZakupu]
 dictEan = ['ean','EAN','kodPask']
 dictCena = ['cena','oferta','cena_prop','Cena sprzedaży netto']
 
@@ -24,7 +26,7 @@ wynik = pd.DataFrame(columns=kolumny)
 #pobierz dane z Tema
 print('Pobieram dane z Tema')
 tema = pd.read_excel("tema.xlsx", sheet_name=0)
-tema = tema.dropna(subset=["Paskowy"])
+tema.dropna(subset=["Paskowy"], inplace=True)
 
 #kopiowanie kolumn
 for kol in kolumny:
@@ -49,6 +51,7 @@ for plik in os.listdir("."):
             
             #dodaj nagłówek
             wynik[plik] = None
+            kolumnyCena.append(plik)
             #sprawdz wg Tema
             for index, row in wynik.iterrows():
                 find = df.index[df[colEan[0]]==row[plikTemaEan]].tolist()
@@ -58,7 +61,7 @@ for plik in os.listdir("."):
             print('Znalazłem plik:',plik, ' ale nie mogę zlokalizować column dla EAN i/lub ceny')
 
 #sortuj i wykop
-wynik = wynik.sort_values(['NazwaZnacznika','Nazwa'])
+wynik = wynik.sort_values(['NazwaZnacznika','Nazwa'], ignore_index=True)
 
 #formatuj
 writer = pd.ExcelWriter(plikWynikowy, engine='xlsxwriter', datetime_format='dd.mm.yyyy hh:mm:ss', date_format='dd.mm.yyyy')
@@ -70,6 +73,21 @@ worksheet.set_column(0,  max_col - 1, 12)
 worksheet.autofilter(0, 0, max_row, max_col - 1)
 worksheet.autofit()
 worksheet.freeze_panes(1, 0)
+
+#koloruj najlepsze ceny
+cf = workbook.add_format({'bg_color': '#4FFF33'})
+# print(wynik[kolumnyCena].idxmin(axis="columns").items()))
+# for index, best in wynik[kolumnyCena].idxmin(axis="columns").items():
+#     print(index, best, wynik.loc[wynik.index[index], best])
+#     colIdx = len(kolumny)+kolumnyCena.index(best)-1
+#     worksheet.write(index,colIdx,best, cf)
+for index,row in wynik.iterrows():    
+    cena = min(filter(None,row[kolumnyCena].tolist()), default=0)
+    for _kol in kolumnyCena:
+        if(cena==row[_kol]):
+            colIdx = len(kolumny)+kolumnyCena.index(_kol)-1
+            worksheet.write(index+1,colIdx,cena, cf)
+            
 writer.close()
 
 #otwórz na koniec
