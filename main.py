@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import xlsxwriter
 
 #zmienne
 plikWynikowy = 'wynik.xlsx'
@@ -58,8 +59,24 @@ for plik in os.listdir("."):
 
 #sortuj i wykop
 wynik = wynik.sort_values(['NazwaZnacznika','Nazwa'])
-wynik.to_excel(plikWynikowy, index=False)
+
+#formatuj
+writer = pd.ExcelWriter(plikWynikowy, engine='xlsxwriter', datetime_format='dd.mm.yyyy hh:mm:ss', date_format='dd.mm.yyyy')
+wynik.to_excel(writer, index=False)
+workbook  = writer.book
+worksheet = writer.sheets["Sheet1"]
+(max_row, max_col) = wynik.shape
+worksheet.set_column(0,  max_col - 1, 12)
+worksheet.autofilter(0, 0, max_row, max_col - 1)
+worksheet.autofit()
+worksheet.freeze_panes(1, 0)
+writer.close()
+
+#otwórz na koniec
 os.startfile(plikWynikowy)
+
+#poczekaj na zakończenie
+input("Enter by zakończyć")
 
 # pip install auto-py-to-exe
 # python -m auto_py_to_exe
