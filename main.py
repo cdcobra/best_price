@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import xlsxwriter
+import funkcje as f
 
 #zmienne
 plikWynikowy = 'wynik.xlsx'
@@ -12,19 +13,11 @@ kolumnyCena = [plikTemaCenaZakupu]
 dictEan = ['ean','EAN','kodPask']
 dictCena = ['cena','oferta','cena_prop','Cena sprzedaży netto']
 
-#liczba
-def liczba(x):
-    try:        
-        return round(float(x),2)
-    except:
-        print(x)
-    return 0
-
 #przygotowanie DataFrame
 wynik = pd.DataFrame(columns=kolumny)
 
 #pobierz dane z Tema
-print('Pobieram dane z Tema')
+f.naEkran('Pobieram dane z Tema')
 tema = pd.read_excel("tema.xlsx", sheet_name=0)
 tema.dropna(subset=["Paskowy"], inplace=True)
 
@@ -44,10 +37,17 @@ for plik in os.listdir("."):
         colEan = [x for x in dictEan if x in df]
         colCena = [x for x in dictCena if x in df]
         
+        #jeżeli nie znaleziono kolumny dla EAN
+        if not colEan:            
+            colEan = f.szukajKol(df.columns.tolist(),plik,'EAN')            
+
+        #jeżeli nie znaleziono kolumny dla CENA
+        if not colCena:
+            colCena = f.szukajKol(df.columns.tolist(),plik,'CENA')  
+
         #jeżeli znaleziono
         if colEan and colCena:
-            print('Znalazłem plik:',plik, ' Kolumna cena: ',colCena[0], 'Kolumna EAN:', colEan[0])
-            #print(df.dtypes)
+            f.naEkran(f'Plik: {plik} Kolumna cena: {colCena[0]}, Kolumna EAN: {colEan[0]}')
             
             #dodaj nagłówek
             wynik[plik] = None
@@ -56,9 +56,7 @@ for plik in os.listdir("."):
             for index, row in wynik.iterrows():
                 find = df.index[df[colEan[0]]==row[plikTemaEan]].tolist()
                 if find:
-                    wynik.at[index, plik] = liczba(df.loc[find[0], colCena[0]])
-        else: 
-            print('Znalazłem plik:',plik, ' ale nie mogę zlokalizować column dla EAN i/lub ceny')
+                    wynik.at[index, plik] = f.liczba(df.loc[find[0], colCena[0]])
 
 #sortuj i wykop
 wynik = wynik.sort_values(['NazwaZnacznika','Nazwa'], ignore_index=True)
@@ -76,11 +74,6 @@ worksheet.freeze_panes(1, 0)
 
 #koloruj najlepsze ceny
 cf = workbook.add_format({'bg_color': '#4FFF33'})
-# print(wynik[kolumnyCena].idxmin(axis="columns").items()))
-# for index, best in wynik[kolumnyCena].idxmin(axis="columns").items():
-#     print(index, best, wynik.loc[wynik.index[index], best])
-#     colIdx = len(kolumny)+kolumnyCena.index(best)-1
-#     worksheet.write(index,colIdx,best, cf)
 for index,row in wynik.iterrows():    
     cena = min(filter(None,row[kolumnyCena].tolist()), default=0)
     for _kol in kolumnyCena:
