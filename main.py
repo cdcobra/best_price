@@ -2,6 +2,9 @@ import pandas as pd
 import os
 import xlsxwriter
 import funkcje as f
+import warnings
+
+warnings.filterwarnings('ignore', category=UserWarning, module='openpyxl')
 
 #zmienne
 plikWynikowy = 'wynik.xlsx'
