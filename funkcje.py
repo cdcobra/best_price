@@ -1,4 +1,4 @@
-import os
+import os,json
 
 #liczba
 def liczba(x):
@@ -26,6 +26,23 @@ def szukajPlik(wylaczenia,txt):
         if (plik.endswith(".xlsx") or plik.endswith(".xls")) and plik not in wylaczenia: 
             print(f'{indeks}: {plik}')
     return os.listdir(".")[int(input(txt))]
+
+def setting():
+    if not os.path.isfile('setting.json'):
+        default()
+    with open('setting.json', 'r') as file:
+        return json.load(file)
+
+def default():
+    default = {
+        "plikTema": "tema.xlsx",
+        "plikWyniku": "wynik.xlsx",
+        "kolumnyEan": ["Paskowy","Ean","EAN","kodPask"],
+        "kolumnyDodatkowe": ["KodWlasny","NazwaZnacznika","Nazwa","IloscNaMagazynie"]
+    }
+    out_file = open("setting.json", "w")
+    json.dump(default, out_file, ensure_ascii=False, indent=4)
+    out_file.close()
 
 
 
