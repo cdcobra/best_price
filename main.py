@@ -11,18 +11,37 @@ plikWynikowy = 'wynik.xlsx'
 plikTema = 'tema.xlsx'
 plikTemaEan = 'Paskowy'
 plikTemaCenaZakupu = 'CenaZakupuNetto'
-kolumny = ['KodWlasny',plikTemaEan, 'NazwaZnacznika','Nazwa','IloscNaMagazynie',plikTemaCenaZakupu]
-kolumnyCena = [plikTemaCenaZakupu]
-dictEan = ['ean','EAN','kodPask']
-dictCena = ['cena','oferta','cena_prop','Cena sprzedaży netto']
 
-#przygotowanie DataFrame
-wynik = pd.DataFrame(columns=kolumny)
+
+#sprawdz czy jest tema
+if not os.path.isfile(plikTema):
+    plikTema = f.szukajPlik([plikWynikowy, plikTema], 'Wskaż numer pliku w którym znajduje się kartoteka Tema: ')
 
 #pobierz dane z Tema
 f.naEkran('Pobieram dane z Tema')
-tema = pd.read_excel("tema.xlsx", sheet_name=0)
-tema.dropna(subset=["Paskowy"], inplace=True)
+
+tema = pd.read_excel(plikTema, sheet_name=0)
+
+#sprawdz czy jest kolumna EAN
+if not plikTemaEan in tema.columns.tolist():
+    plikTemaEan = f.szukajKol(tema.columns.tolist(),plikTema,'EAN')
+
+#sprawdz czy jest kolumna cena
+if not plikTemaCenaZakupu in tema.columns.tolist():
+    plikTemaCenaZakupu = f.szukajKol(tema.columns.tolist(),plikTema,'Cena zakupu')
+
+#listy
+kolumny = ['KodWlasny',plikTemaEan, 'NazwaZnacznika','Nazwa','IloscNaMagazynie',plikTemaCenaZakupu]
+kolumnyCena = [plikTemaCenaZakupu]
+dictEan = ['ean','EAN','kodPask',plikTemaEan]
+#dictCena = ['cena','oferta','cena_prop','Cena sprzedaży netto']
+dictCena = []
+
+#usun wiersze bez ean
+tema.dropna(subset=[plikTemaEan], inplace=True)
+
+#przygotowanie DataFrame
+wynik = pd.DataFrame(columns=kolumny)
 
 #kopiowanie kolumn
 for kol in kolumny:
@@ -42,11 +61,11 @@ for plik in os.listdir("."):
         
         #jeżeli nie znaleziono kolumny dla EAN
         if not colEan:            
-            colEan = f.szukajKol(df.columns.tolist(),plik,'EAN')            
+            colEan = [f.szukajKol(df.columns.tolist(),plik,'EAN')]        
 
         #jeżeli nie znaleziono kolumny dla CENA
         if not colCena:
-            colCena = f.szukajKol(df.columns.tolist(),plik,'CENA')  
+            colCena = [f.szukajKol(df.columns.tolist(),plik,'CENA')] 
 
         #jeżeli znaleziono
         if colEan and colCena:

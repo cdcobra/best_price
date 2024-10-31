@@ -3,3 +3,4 @@
 *.xls
 *.zip
 output
+__pycache__
