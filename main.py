@@ -19,7 +19,6 @@ if not os.path.isfile(plikTema):
 
 #pobierz dane z Tema
 f.naEkran('Pobieram dane z Tema')
-
 tema = pd.read_excel(plikTema, sheet_name=0)
 
 #sprawdz czy jest kolumna EAN
