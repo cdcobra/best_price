@@ -38,12 +38,9 @@ def default():
         "plikTema": "tema.xlsx",
         "plikWyniku": "wynik.xlsx",
         "kolumnyEan": ["Paskowy","Ean","EAN","kodPask"],
+        "kolumnyCena": ["oferta","cena_prop","Cena sprzedaży netto"],
         "kolumnyDodatkowe": ["KodWlasny","NazwaZnacznika","Nazwa","IloscNaMagazynie"]
     }
     out_file = open("setting.json", "w")
     json.dump(default, out_file, ensure_ascii=False, indent=4)
-    out_file.close()
-
-
-
-    
+    out_file.close()    
